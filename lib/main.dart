@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'calculation.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,10 +32,15 @@ class _TextFiledState extends State<TextField> {
 
   void _UpdateText(String letter) {
     setState(() {
-      if (letter == '=' || letter == 'C')
+      if (letter == 'C')
         _expression = '';
-      else
+      else if (letter == '=') {
+        _expression = '';
+        var ans = Calculator.execute();
+        controller.sink.add(ans);
+      } else {
         _expression += letter;
+      }
     });
   }
 
@@ -56,11 +61,12 @@ class _TextFiledState extends State<TextField> {
     );
   }
 
-  static final controller = StreamController<String>();
+  static final controller = StreamController.broadcast();
 
   @override
   void initState() {
     controller.stream.listen((event) => _UpdateText(event));
+    controller.stream.listen((event) => Calculator.getKey(event));
   }
 }
 
