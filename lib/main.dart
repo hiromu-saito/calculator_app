@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -26,7 +28,17 @@ class TextField extends StatefulWidget {
 }
 
 class _TextFiledState extends State<TextField> {
-  String _expression = '1+1';
+  String _expression = '';
+
+  void _UpdateText(String letter) {
+    setState(() {
+      if (letter == '=' || letter == 'C')
+        _expression = '';
+      else
+        _expression += letter;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // any code
@@ -42,6 +54,13 @@ class _TextFiledState extends State<TextField> {
         ),
       ),
     );
+  }
+
+  static final controller = StreamController<String>();
+
+  @override
+  void initState() {
+    controller.stream.listen((event) => _UpdateText(event));
   }
 }
 
@@ -108,7 +127,7 @@ class Button extends StatelessWidget {
           ),
         ),
         onPressed: () {
-          print('ボタン押下');
+          _TextFiledState.controller.sink.add(_key);
         },
       ),
     );
