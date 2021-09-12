@@ -42,22 +42,44 @@ class _TextFiledState extends State<TextField> {
         _expression += letter;
       }
     });
+    void _RemoveOneletter() {
+      setState(() {
+        _expression = _expression.substring(0, _expression.length - 1);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // any code
     return Expanded(
-      flex: 1,
+      flex: 2,
       child: Container(
-        child: Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            _expression,
-            style: TextStyle(fontSize: 64.0),
+          child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              _expression,
+              style: TextStyle(fontSize: 64.0),
+            ),
           ),
-        ),
-      ),
+          Container(
+            padding: EdgeInsets.only(top: 50),
+            child: Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: const Icon(Icons.backspace_sharp),
+                  onPressed: () {
+                    setState(() {
+                      _expression =
+                          _expression.substring(0, _expression.length - 1);
+                    });
+                  },
+                )),
+          )
+        ],
+      )),
     );
   }
 
@@ -75,31 +97,36 @@ class Keyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      flex: 2,
+      flex: 5,
       // child: Center(
       child: Container(
         color: Color(0xff87cefa),
         child: GridView.count(
+          padding: EdgeInsets.all(3),
           crossAxisCount: 4,
-          mainAxisSpacing: 3.0,
-          crossAxisSpacing: 3.0,
+          mainAxisSpacing: 2.0,
+          crossAxisSpacing: 2.0,
           children: [
+            'C',
+            '()',
+            '%',
+            '÷',
             '7',
             '8',
             '9',
-            '÷',
+            '×',
             '4',
             '5',
             '6',
-            '×',
+            '-',
             '1',
             '2',
             '3',
-            '-',
-            'C',
-            '0',
-            '=',
             '+',
+            '+/-',
+            '0',
+            '.',
+            '=',
           ].map((key) {
             return GridTile(
               child: Button(
@@ -128,7 +155,7 @@ class Button extends StatelessWidget {
           child: Text(
             _key,
             style: TextStyle(
-              fontSize: 46.0,
+              fontSize: 32.0,
             ),
           ),
         ),
