@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:calculator_app/main_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'calculation.dart';
 
 void main() {
@@ -11,85 +13,53 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: Text('電卓'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [TextField(), Keyboard()],
+        home: ChangeNotifierProvider<MainModel>(
+      create: (_) => MainModel(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('電卓'),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [TextField(), Keyboard()],
+        ),
       ),
     ));
   }
 }
 
-class TextField extends StatefulWidget {
-  _TextFiledState createState() => _TextFiledState();
-}
-
-class _TextFiledState extends State<TextField> {
-  String _expression = '';
-
-  void _updateText(String letter) {
-    setState(() {
-      if (letter == 'C')
-        _expression = '';
-      else if (letter == '=') {
-        _expression = '';
-        var ans = Calculator.execute();
-        controller.sink.add(ans);
-      } else {
-        _expression += letter;
-      }
-    });
-    void _RemoveOneletter() {
-      setState(() {
-        _expression = _expression.substring(0, _expression.length - 1);
-      });
-    }
-  }
-
+class TextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // any code
     return Expanded(
-      flex: 1,
+      flex: 2,
       child: Container(
-          child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              _expression,
-              style: TextStyle(fontSize: 64.0),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.only(top: 30),
-            child: Align(
+          child: Consumer<MainModel>(builder: (context, model, child) {
+        return Column(
+          children: [
+            Align(
               alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.backspace_sharp),
-                onPressed: () {
-                  setState(() {
-                    _expression =
-                        _expression.substring(0, _expression.length - 1);
-                  });
-                },
+              child: Text(
+                model.expression,
+                style: TextStyle(fontSize: 64.0),
               ),
             ),
-          ),
-        ],
-      )),
+            Container(
+              padding: EdgeInsets.only(top: 30),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: const Icon(Icons.backspace_sharp),
+                  onPressed: () {
+                    model.removeOneLetter();
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      })),
     );
-  }
-
-  static final controller = StreamController.broadcast();
-
-  @override
-  void initState() {
-    controller.stream.listen((event) => _updateText(event));
-    controller.stream.listen((event) => Calculator.getKey(event));
   }
 }
 
@@ -97,84 +67,88 @@ class _TextFiledState extends State<TextField> {
 class Keyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      flex: 3,
-      child: Container(
-        // color: Color(0xff87cefa),
-        child: GridView.count(
-          padding: EdgeInsets.all(3),
-          crossAxisCount: 4,
-          mainAxisSpacing: 3.0,
-          crossAxisSpacing: 3.0,
-          children: [
-            ButtonProperty('C', Colors.red),
-            ButtonProperty('()', Colors.green),
-            ButtonProperty('%', Colors.green),
-            ButtonProperty('÷', Colors.green),
-            ButtonProperty('7', Colors.black),
-            ButtonProperty('8', Colors.black),
-            ButtonProperty('9', Colors.black),
-            ButtonProperty('×', Colors.green),
-            ButtonProperty('4', Colors.black),
-            ButtonProperty('5', Colors.black),
-            ButtonProperty('6', Colors.black),
-            ButtonProperty('-', Colors.green),
-            ButtonProperty('1', Colors.black),
-            ButtonProperty('2', Colors.black),
-            ButtonProperty('3', Colors.black),
-            ButtonProperty('+', Colors.green),
-            ButtonProperty('+/-', Colors.black),
-            ButtonProperty('0', Colors.black),
-            ButtonProperty('.', Colors.black),
-            ButtonProperty('=', Colors.green),
-          ].map((buttonProperty) {
-            return GridTile(
-              child: Button(buttonProperty.key, buttonProperty.color),
-            );
-          }).toList(),
+    return Consumer<MainModel>(builder: (context, model, child) {
+      return Expanded(
+        flex: 3,
+        child: Container(
+          // color: Color(0xff87cefa),
+          child: GridView.count(
+            padding: EdgeInsets.all(3),
+            crossAxisCount: 4,
+            mainAxisSpacing: 3.0,
+            crossAxisSpacing: 3.0,
+            children: [
+              ButtonProperty('7', Colors.black, false),
+              ButtonProperty('8', Colors.black, false),
+              ButtonProperty('9', Colors.black, false),
+              ButtonProperty('÷', Colors.green, model.isAbleOperator()),
+              ButtonProperty('4', Colors.black, false),
+              ButtonProperty('5', Colors.black, false),
+              ButtonProperty('6', Colors.black, false),
+              ButtonProperty('×', Colors.green, model.isAbleOperator()),
+              ButtonProperty('1', Colors.black, false),
+              ButtonProperty('2', Colors.black, false),
+              ButtonProperty('3', Colors.black, false),
+              ButtonProperty('-', Colors.green, model.isAbleOperator()),
+              ButtonProperty('C', Colors.red, false),
+              ButtonProperty('0', Colors.black, model.expression.isEmpty),
+              ButtonProperty('=', Colors.red, model.isAbleOperator()),
+              ButtonProperty('+', Colors.green, model.isAbleOperator()),
+            ].map((buttonProperty) {
+              return GridTile(
+                child: Button(buttonProperty.key, buttonProperty.color,
+                    buttonProperty.disable),
+              );
+            }).toList(),
+          ),
         ),
-
-        // ),
-      ),
-    );
+      );
+    });
   }
 }
 
 class ButtonProperty {
   String _key;
   Color _color;
+  bool _disable;
   String get key => _key;
   Color get color => _color;
+  bool get disable => _disable;
 
-  ButtonProperty(this._key, this._color);
+  ButtonProperty(this._key, this._color, this._disable);
 }
 
 //　キーボタン
 class Button extends StatelessWidget {
-  final _key;
+  final String _key;
   final _color;
-  Button(this._key, this._color);
+  final _disable;
+  Button(this._key, this._color, this._disable);
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      child: Text(
-        _key,
-        style: TextStyle(
-          fontSize: 20.0,
-          color: _color,
+    return Consumer<MainModel>(builder: (context, model, child) {
+      return TextButton(
+        child: Text(
+          _key,
+          style: TextStyle(
+            fontSize: 20.0,
+            color: _color,
+          ),
         ),
-      ),
-      onPressed: () {
-        _TextFiledState.controller.sink.add(_key);
-      },
-      style: TextButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50.0),
+        onPressed: () {
+          if (!_disable) {
+            model.updateText(_key);
+          }
+        },
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50.0),
+          ),
+          fixedSize: Size(10, 10),
+          backgroundColor: Colors.grey[200],
         ),
-        fixedSize: Size(10, 10),
-        backgroundColor: Colors.grey[200],
-      ),
-    );
+      );
+    });
   }
 }
