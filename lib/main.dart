@@ -30,7 +30,7 @@ class TextField extends StatefulWidget {
 class _TextFiledState extends State<TextField> {
   String _expression = '';
 
-  void _UpdateText(String letter) {
+  void _updateText(String letter) {
     setState(() {
       if (letter == 'C')
         _expression = '';
@@ -53,7 +53,7 @@ class _TextFiledState extends State<TextField> {
   Widget build(BuildContext context) {
     // any code
     return Expanded(
-      flex: 2,
+      flex: 1,
       child: Container(
           child: Column(
         children: [
@@ -65,19 +65,20 @@ class _TextFiledState extends State<TextField> {
             ),
           ),
           Container(
-            padding: EdgeInsets.only(top: 50),
+            padding: EdgeInsets.only(top: 30),
             child: Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.backspace_sharp),
-                  onPressed: () {
-                    setState(() {
-                      _expression =
-                          _expression.substring(0, _expression.length - 1);
-                    });
-                  },
-                )),
-          )
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.backspace_sharp),
+                onPressed: () {
+                  setState(() {
+                    _expression =
+                        _expression.substring(0, _expression.length - 1);
+                  });
+                },
+              ),
+            ),
+          ),
         ],
       )),
     );
@@ -87,7 +88,7 @@ class _TextFiledState extends State<TextField> {
 
   @override
   void initState() {
-    controller.stream.listen((event) => _UpdateText(event));
+    controller.stream.listen((event) => _updateText(event));
     controller.stream.listen((event) => Calculator.getKey(event));
   }
 }
@@ -97,41 +98,38 @@ class Keyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      flex: 5,
-      // child: Center(
+      flex: 3,
       child: Container(
-        color: Color(0xff87cefa),
+        // color: Color(0xff87cefa),
         child: GridView.count(
           padding: EdgeInsets.all(3),
           crossAxisCount: 4,
-          mainAxisSpacing: 2.0,
-          crossAxisSpacing: 2.0,
+          mainAxisSpacing: 3.0,
+          crossAxisSpacing: 3.0,
           children: [
-            'C',
-            '()',
-            '%',
-            '÷',
-            '7',
-            '8',
-            '9',
-            '×',
-            '4',
-            '5',
-            '6',
-            '-',
-            '1',
-            '2',
-            '3',
-            '+',
-            '+/-',
-            '0',
-            '.',
-            '=',
-          ].map((key) {
+            ButtonProperty('C', Colors.red),
+            ButtonProperty('()', Colors.green),
+            ButtonProperty('%', Colors.green),
+            ButtonProperty('÷', Colors.green),
+            ButtonProperty('7', Colors.black),
+            ButtonProperty('8', Colors.black),
+            ButtonProperty('9', Colors.black),
+            ButtonProperty('×', Colors.green),
+            ButtonProperty('4', Colors.black),
+            ButtonProperty('5', Colors.black),
+            ButtonProperty('6', Colors.black),
+            ButtonProperty('-', Colors.green),
+            ButtonProperty('1', Colors.black),
+            ButtonProperty('2', Colors.black),
+            ButtonProperty('3', Colors.black),
+            ButtonProperty('+', Colors.green),
+            ButtonProperty('+/-', Colors.black),
+            ButtonProperty('0', Colors.black),
+            ButtonProperty('.', Colors.black),
+            ButtonProperty('=', Colors.green),
+          ].map((buttonProperty) {
             return GridTile(
-              child: Button(
-                key,
-              ),
+              child: Button(buttonProperty.key, buttonProperty.color),
             );
           }).toList(),
         ),
@@ -142,26 +140,40 @@ class Keyboard extends StatelessWidget {
   }
 }
 
+class ButtonProperty {
+  String _key;
+  Color _color;
+  String get key => _key;
+  Color get color => _color;
+
+  ButtonProperty(this._key, this._color);
+}
+
 //　キーボタン
 class Button extends StatelessWidget {
   final _key;
-  Button(this._key);
+  final _color;
+  Button(this._key, this._color);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: TextButton(
-        child: Center(
-          child: Text(
-            _key,
-            style: TextStyle(
-              fontSize: 32.0,
-            ),
-          ),
+    return TextButton(
+      child: Text(
+        _key,
+        style: TextStyle(
+          fontSize: 20.0,
+          color: _color,
         ),
-        onPressed: () {
-          _TextFiledState.controller.sink.add(_key);
-        },
+      ),
+      onPressed: () {
+        _TextFiledState.controller.sink.add(_key);
+      },
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50.0),
+        ),
+        fixedSize: Size(10, 10),
+        backgroundColor: Colors.grey[200],
       ),
     );
   }
